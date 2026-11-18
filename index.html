@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>oqvi.ru — личная инфраструктура</title>
+<meta name="description" content="oqvi.ru — личная инфраструктура для отслеживания цифровых сервисов: свой proxy manager, дашборд с серверами, подключение через веб и многое другое.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05060a;
+    --bg-soft: #0a0c12;
+    --card: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text: #eef1f8;
+    --text-dim: #9aa3b5;
+    --accent: #6d8bff;
+    --accent-2: #a06bff;
+    --accent-3: #4de3c1;
+    --glow: rgba(109, 139, 255, 0.35);
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Фон ---------- */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 20%, transparent 75%);
+  }
+
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.5;
+    animation: drift 18s ease-in-out infinite alternate;
+  }
+  .blob-1 { width: 520px; height: 520px; background: #2b4bd8; top: -180px; left: -100px; }
+  .blob-2 { width: 460px; height: 460px; background: #7a2bd8; top: -120px; right: -120px; animation-delay: -6s; }
+  .blob-3 { width: 380px; height: 380px; background: #0e7a6a; bottom: -200px; left: 35%; animation-delay: -12s; opacity: 0.35; }
+
+  @keyframes drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(60px, 40px) scale(1.15); }
+  }
+
+  /* ---------- Разметка ---------- */
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    color: var(--text);
+  }
+
+  .logo-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid;
+    place-items: center;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 15px;
+    color: #fff;
+    box-shadow: 0 0 24px var(--glow);
+  }
+
+  .gh-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 9px 16px;
+    border: 1px solid var(--card-border);
+    border-radius: 999px;
+    background: var(--card);
+    transition: all 0.25s ease;
+  }
+  .gh-link:hover {
+    color: var(--text);
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.06);
+    transform: translateY(-1px);
+  }
+  .gh-link svg { width: 18px; height: 18px; fill: currentColor; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    text-align: center;
+    padding: 96px 0 72px;
+    animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    padding: 8px 18px;
+    border-radius: 999px;
+    margin-bottom: 36px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-3);
+    box-shadow: 0 0 12px var(--accent-3);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  h1 {
+    font-size: clamp(52px, 9vw, 96px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.02;
+    background: linear-gradient(180deg, #ffffff 30%, rgba(255,255,255,0.55));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero .sub {
+    margin: 28px auto 0;
+    max-width: 640px;
+    font-size: clamp(16px, 2.4vw, 19px);
+    line-height: 1.65;
+    color: var(--text-dim);
+  }
+
+  .hero .sub strong { color: var(--text); font-weight: 600; }
+
+  .cta {
+    margin-top: 44px;
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s ease;
+  }
+  .btn svg { width: 19px; height: 19px; fill: currentColor; }
+
+  .btn-primary {
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 8px 32px var(--glow), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px var(--glow), inset 0 1px 0 rgba(255,255,255,0.25); }
+
+  .btn-ghost {
+    color: var(--text);
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    backdrop-filter: blur(8px);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.07); transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
+
+  /* ---------- Фичи ---------- */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    padding: 24px 0 96px;
+  }
+
+  .card {
+    position: relative;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    border-radius: 18px;
+    padding: 26px 24px;
+    backdrop-filter: blur(8px);
+    transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+    opacity: 0;
+    animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .card:nth-child(1) { animation-delay: 0.15s; }
+  .card:nth-child(2) { animation-delay: 0.25s; }
+  .card:nth-child(3) { animation-delay: 0.35s; }
+  .card:nth-child(4) { animation-delay: 0.45s; }
+
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(109, 139, 255, 0.4);
+    background: rgba(109, 139, 255, 0.05);
+  }
+
+  .card .icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 18px;
+    background: linear-gradient(135deg, rgba(109,139,255,0.18), rgba(160,107,255,0.18));
+    border: 1px solid rgba(109,139,255,0.25);
+  }
+  .card .icon svg { width: 21px; height: 21px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .card p { font-size: 13.5px; line-height: 1.6; color: var(--text-dim); }
+
+  /* ---------- Плашка "для одного" ---------- */
+  .solo {
+    text-align: center;
+    padding: 0 0 100px;
+    opacity: 0;
+    animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+  }
+
+  .solo-box {
+    display: inline-block;
+    padding: 34px 44px;
+    border-radius: 24px;
+    border: 1px solid var(--card-border);
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    position: relative;
+    overflow: hidden;
+  }
+  .solo-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 15%; right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.7;
+  }
+
+  .solo-box .big {
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .solo-box .small { margin-top: 10px; color: var(--text-dim); font-size: 15px; line-height: 1.6; max-width: 480px; }
+
+  /* ---------- Футер ---------- */
+  footer {
+    border-top: 1px solid var(--card-border);
+    padding: 28px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    color: var(--text-dim);
+    font-size: 13.5px;
+  }
+
+  footer .mono { font-family: var(--mono); font-size: 12.5px; }
+
+  footer a { color: var(--text); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.25); transition: border-color 0.2s; }
+  footer a:hover { border-color: var(--accent); }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 640px) {
+    .hero { padding: 64px 0 56px; }
+    .solo-box { padding: 28px 24px; }
+    footer { justify-content: center; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<div class="wrap">
+
+  <header>
+    <a class="logo" href="#">
+      <span class="logo-mark">oq</span>
+      oqvi.ru
+    </a>
+    <a class="gh-link" href="https://github.com/imktt" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      github.com/imktt
+    </a>
+  </header>
+
+  <section class="hero">
+    <div class="badge"><span class="dot"></span>под ключ · для одного человека</div>
+    <h1>oqvi.ru</h1>
+    <p class="sub">
+      Личная инфраструктура для отслеживания цифровых сервисов.
+      Свой <strong>proxy manager</strong>, дашборд с серверами,
+      подключение через веб <strong>и многое другое</strong>.
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/imktt" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+      </a>
+      <a class="btn btn-ghost" href="#features">Что внутри ↓</a>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+
+    <div class="card">
+      <div class="icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h3>Proxy Manager</h3>
+      <p>Собственное управление прокси: конфиги, профили и контроль подключений в одном месте.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      </div>
+      <h3>Дашборд серверов</h3>
+      <p>Нагрузка, статус и здоровье всех серверов на одном экране — в реальном времени.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c3 3.5 3 15.5 0 18-3-2.5-3-14.5 0-18z"/></svg>
+      </div>
+      <h3>Подключение через веб</h3>
+      <p>Доступ ко всему из браузера: без лишних клиентов и настроек, откуда угодно.</p>
+    </div>
+
+    <div class="card">
+      <div class="icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+      </div>
+      <h3>И многое другое</h3>
+      <p>Мониторинг сервисов, автоматизация и инструменты — всё, что нужно личному стеку.</p>
+    </div>
+
+  </section>
+
+  <section class="solo">
+    <div class="solo-box">
+      <div class="big">И всё это — для одного человека.</div>
+      <div class="small">Без команд, без пользователей, без компромиссов. Личная инфраструктура, собранная под себя.</div>
+    </div>
+  </section>
+
+  <footer>
+    <span class="mono">oqvi.ru</span>
+    <span>личная инфраструктура</span>
+    <span><a href="https://github.com/imktt" target="_blank" rel="noopener">github.com/imktt</a></span>
+  </footer>
+
+</div>
+
+</body>
+</html>
